@@ -1,5 +1,5 @@
 # glasses-filter-project-template
-Team: Coach Heying
+Team: Ethan Wuerslin and  Viswa Venkatachalam
 
 ## How this repo works
 - **Issues** hold our user stories. Use the "User story" template.
