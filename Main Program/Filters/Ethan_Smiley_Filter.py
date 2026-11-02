@@ -12,7 +12,9 @@ import os
 import sys
 import urllib.request
 import cv2
-
+from collections import deque
+# Remember the last 3 detected faces
+face_history = deque(maxlen=5)
 
 import numpy as np
 
@@ -164,8 +166,18 @@ def main():
         _, faces = detector.detect(frame)
 
         if faces is not None:
-            for face in faces:
-                frame = overlay_smiley(frame, smiley, face)
+            if len(faces) == 1:
+                face_history.append(faces[0])
+                smoothed_face = np.mean(face_history, axis=0)
+                frame = overlay_smiley(frame,smiley,smoothed_face)
+            else:
+                face_history.clear()
+                for face in faces:
+                    frame = overlay_smiley(frame, smiley, face)
+        elif len(face_history) > 0:
+            smoothed_face = np.mean(face_history, axis=0)
+            frame = overlay_smiley(frame,smiley,smoothed_face)
+            face_history.popleft()
 
         cv2.imshow("Smiley Filter", frame)
 
