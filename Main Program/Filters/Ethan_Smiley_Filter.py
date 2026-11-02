@@ -16,7 +16,7 @@ import cv2
 
 import numpy as np
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__).removesuffix("Filters/"))
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 MAIN_DIR = os.path.dirname(SCRIPT_DIR)
 
