@@ -31,7 +31,7 @@ MODEL_URL = (
     "face_detection_yunet/face_detection_yunet_2023mar.onnx"
 )
 
-SMILEY_PATH = os.path.join(SCRIPT_DIR, "smiley.png")
+SMILEY_PATH = os.path.join(MAIN_DIR, "Assets", "smiley.png")
 
 # Increase or decrease if the smiley is too large/small
 FACE_SCALE = 1.5
