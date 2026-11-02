@@ -12,11 +12,20 @@ import os
 import sys
 import urllib.request
 import cv2
+
+
 import numpy as np
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__).removesuffix("Filters/"))
 
-MODEL_PATH = os.path.join(SCRIPT_DIR, "face_detection_yunet_2023mar.onnx")
+MAIN_DIR = os.path.dirname(SCRIPT_DIR)
+
+MODEL_PATH = os.path.join(
+    MAIN_DIR, 
+    "Visuals", 
+    "face_detection_yunet_2023mar.onnx"
+)
+
 MODEL_URL = (
     "https://github.com/opencv/opencv_zoo/raw/main/models/"
     "face_detection_yunet/face_detection_yunet_2023mar.onnx"
