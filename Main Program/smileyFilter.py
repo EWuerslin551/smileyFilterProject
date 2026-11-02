@@ -50,6 +50,9 @@ def overlay_smiley(frame, smiley, face):
     # Resize smiley based on face width
     target_size = int(face_w * FACE_SCALE)
 
+    if target_size < 100: #removes filter for a person if they are more than 3ish tiles
+        return frame
+        
     resized = cv2.resize(
         smiley,
         (target_size, target_size),
