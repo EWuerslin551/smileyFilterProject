@@ -17,6 +17,7 @@ from collections import deque
 face_history = deque(maxlen=5)
 
 import numpy as np
+import time
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -34,6 +35,7 @@ MODEL_URL = (
 )
 
 SMILEY_PATH = os.path.join(MAIN_DIR, "Assets", "smiley.png")
+STEVE_PATH = os.path.join(MAIN_DIR, "Assets", "steve_crushed.png")
 
 # Increase or decrease if the smiley is too large/small
 FACE_SCALE = 1.5
@@ -120,6 +122,7 @@ def main():
     load_model()
 
     smiley = cv2.imread(SMILEY_PATH, cv2.IMREAD_UNCHANGED)
+    steve = cv2.imread(STEVE_PATH, cv2.IMREAD_UNCHANGED)
 
     if smiley is None:
         print(f"Error: Could not load {SMILEY_PATH}")
@@ -127,6 +130,14 @@ def main():
 
     if smiley.shape[2] != 4:
         print("Error: smiley.png must have transparency (RGBA).")
+        return
+
+    if steve is None:
+        print(f"Error: Could not load {STEVE_PATH}")
+        return
+
+    if steve.shape[2] != 4:
+        print("Error: steve.png must have transparency (RGBA).")
         return
 
     if sys.platform.startswith("win"):
@@ -152,6 +163,8 @@ def main():
 
     print("Running. Press 'q' to quit.")
 
+    starttime = time.time()
+
     while True:
         ret, frame = cap.read()
 
@@ -164,19 +177,21 @@ def main():
         detector.setInputSize((w, h))
 
         _, faces = detector.detect(frame)
-
+        
+        currentfilter = steve if (time.time() - starttime)%10 >= 5 else smiley
+        
         if faces is not None:
             if len(faces) == 1:
                 face_history.append(faces[0])
                 smoothed_face = np.mean(face_history, axis=0)
-                frame = overlay_smiley(frame,smiley,smoothed_face)
+                frame = overlay_smiley(frame,currentfilter,smoothed_face)
             else:
                 face_history.clear()
                 for face in faces:
-                    frame = overlay_smiley(frame, smiley, face)
+                    frame = overlay_smiley(frame, currentfilter, face)
         elif len(face_history) > 0:
             smoothed_face = np.mean(face_history, axis=0)
-            frame = overlay_smiley(frame,smiley,smoothed_face)
+            frame = overlay_smiley(frame,currentfilter,smoothed_face)
             face_history.popleft()
 
         cv2.imshow("Smiley Filter", frame)
