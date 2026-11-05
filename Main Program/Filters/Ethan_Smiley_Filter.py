@@ -38,7 +38,7 @@ SMILEY_PATH = os.path.join(MAIN_DIR, "Assets", "smiley.png")
 STEVE_PATH = os.path.join(MAIN_DIR, "Assets", "steve_crushed.png")
 
 # Increase or decrease if the smiley is too large/small
-FACE_SCALE = 1.5
+FACE_SCALE = 2
 
 
 def load_model():
