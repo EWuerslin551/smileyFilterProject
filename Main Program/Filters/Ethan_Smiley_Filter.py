@@ -12,6 +12,7 @@ import os
 import sys
 import urllib.request
 import cv2
+import math
 from collections import deque
 # Remember the last 3 detected faces
 face_history = deque(maxlen=5)
@@ -58,7 +59,8 @@ def overlay_smiley(frame, smiley, face):
     [x, y, w, h, eye1_x, eye1_y, eye2_x, eye2_y, nose_x, nose_y, ...]
     """
 
-    face_x, face_y, face_w, face_h = map(int, face[:4])
+    face_x, face_y, face_w, face_h, eye1_x, eye1_y, eye2_x, eye2_y = map(int, face[:8])
+
 
     # Resize smiley based on face width
     target_size = int(face_w * FACE_SCALE)
@@ -76,6 +78,23 @@ def overlay_smiley(frame, smiley, face):
 
     center_x = face_x + face_w // 2
     center_y = face_y + face_h // 2
+
+    dy = (eye1_y-eye2_y)
+    dx = (eye1_x-eye2_x)
+
+    rotationAngle = math.degrees(
+        math.atan2(dy, dx)
+    ) + 180
+
+    print(rotationAngle)
+    
+    M = cv2.getRotationMatrix2D(
+        (w // 2, h // 2),
+        -rotationAngle,
+        1
+    )
+
+    resized = cv2.warpAffine(resized, M, (w, h))
 
     x = center_x - w // 2
     y = center_y - h // 2
