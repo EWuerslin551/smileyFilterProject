@@ -136,7 +136,6 @@ def overlay_smiley(frame, smiley, face):
 
     return frame
 
-
 def main():
     load_model()
 
@@ -183,6 +182,15 @@ def main():
     print("Running. Press 'q' to quit.")
 
     starttime = time.time()
+    active = False
+
+    lastTouchTime: int | None = None
+    activeDuration = 30
+
+    def mouse_callback(event, x, y, flags, param):
+        if event == cv2.EVENT_LBUTTONDOWN:
+            active = True
+            lastTouchTime = time.time()
 
     while True:
         ret, frame = cap.read()
@@ -212,6 +220,30 @@ def main():
             smoothed_face = np.mean(face_history, axis=0)
             frame = overlay_smiley(frame,currentfilter,smoothed_face)
             face_history.popleft()
+
+        cv2.setMouseCallback(
+            "Smiley Filter",
+            mouse_callback
+        )
+
+        if time.time() - (lastTouchTime or 0) < activeDuration:
+            active = True
+        else:
+            active = False
+            
+        if not active:
+            frame = frame.astype(np.float32) * 0.1
+
+            cv2.putText(
+                frame,
+                "Touch to Activate",
+                (150, 240),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1,
+                (200, 255, 200),
+                2
+            )
+
 
         cv2.imshow("Smiley Filter", frame)
 
