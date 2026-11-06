@@ -86,8 +86,6 @@ def overlay_smiley(frame, smiley, face):
         math.atan2(dy, dx)
     ) + 180
 
-    print(rotationAngle)
-    
     M = cv2.getRotationMatrix2D(
         (w // 2, h // 2),
         -rotationAngle,
@@ -136,6 +134,13 @@ def overlay_smiley(frame, smiley, face):
 
     return frame
 
+lastTouchTime: float = 0
+def mouse_callback(event, x, y, flags, param):
+    global lastTouchTime
+    if event == cv2.EVENT_LBUTTONDOWN:
+        print("Touch Detected")
+        lastTouchTime = time.time()
+
 def main():
     load_model()
 
@@ -182,16 +187,10 @@ def main():
     print("Running. Press 'q' to quit.")
 
     starttime = time.time()
+
+    activeDuration = 5
+
     active = False
-
-    lastTouchTime: int | None = None
-    activeDuration = 30
-
-    def mouse_callback(event, x, y, flags, param):
-        if event == cv2.EVENT_LBUTTONDOWN:
-            active = True
-            lastTouchTime = time.time()
-
     while True:
         ret, frame = cap.read()
 
@@ -203,7 +202,63 @@ def main():
         h, w = frame.shape[:2]
         detector.setInputSize((w, h))
 
-        _, faces = detector.detect(frame)
+        faces = None
+        if active:
+            _, faces = detector.detect(frame)
+
+        cv2.namedWindow("Smiley Filter")
+
+        cv2.setMouseCallback(
+            "Smiley Filter",
+            mouse_callback
+        )
+
+        if (time.time() - (lastTouchTime or 0)) < activeDuration or faces is not None and len(faces):
+            active = True
+        else:
+            active = False
+            
+        if not active:
+            darkness = 0.95 # 0 = no darkening, 1 = completely black
+
+            overlay = np.zeros_like(frame)
+
+            frame = cv2.addWeighted(
+                frame,
+                1 - darkness,
+                overlay,
+                darkness,
+                0
+            )
+
+            frame = frame.astype(np.uint8)
+            text = "Touch Anywhere To Begin"
+
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            font_scale = 1
+            thickness = 2
+
+            (text_w, text_h), baseline = cv2.getTextSize(
+                text,
+                font,
+                font_scale,
+                thickness
+            )
+            frame_h, frame_w, *_ = frame.shape
+
+            x = (frame_w - text_w) // 2
+            y = (frame_h + text_h) // 2
+
+            cv2.putText(
+                frame,
+                text,
+                (x, y),
+                font,
+                font_scale,
+                (255, 255, 0),
+                thickness,
+                cv2.LINE_AA
+            )
         
         currentfilter = steve if (time.time() - starttime)%10 >= 5 else smiley
         
@@ -220,29 +275,6 @@ def main():
             smoothed_face = np.mean(face_history, axis=0)
             frame = overlay_smiley(frame,currentfilter,smoothed_face)
             face_history.popleft()
-
-        cv2.setMouseCallback(
-            "Smiley Filter",
-            mouse_callback
-        )
-
-        if time.time() - (lastTouchTime or 0) < activeDuration:
-            active = True
-        else:
-            active = False
-            
-        if not active:
-            frame = frame.astype(np.float32) * 0.1
-
-            cv2.putText(
-                frame,
-                "Touch to Activate",
-                (150, 240),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                1,
-                (200, 255, 200),
-                2
-            )
 
 
         cv2.imshow("Smiley Filter", frame)
