@@ -262,16 +262,19 @@ def main():
         
         currentfilter = steve if (time.time() - starttime)%10 >= 5 else smiley
         
-        if faces is not None:
-            if len(faces) == 1:
+        if faces is not None: #applying filter if people are in frame
+        
+            if len(faces) == 1: #for if one person is in frame
                 face_history.append(faces[0])
                 smoothed_face = np.mean(face_history, axis=0)
                 frame = overlay_smiley(frame,currentfilter,smoothed_face)
-            else:
+
+            else: #for if multiple people are in frame
                 face_history.clear()
                 for face in faces:
                     frame = overlay_smiley(frame, currentfilter, face)
-        elif len(face_history) > 0:
+
+        elif len(face_history) > 0: #for if one person was just in frame but is not being detected (to prevent flashing between detecting and not)
             smoothed_face = np.mean(face_history, axis=0)
             frame = overlay_smiley(frame,currentfilter,smoothed_face)
             face_history.popleft()
